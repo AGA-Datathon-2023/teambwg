@@ -1,6 +1,6 @@
 overall_tab <- argonTabItem(
   tabName = "explore",
-  argonH1("DEI Analysis", display = 4),
+  argonH1("DEIA Contracting Analysis", display = 4),
   div(style="display:inline-block",
       pickerInput(
         inputId = "agencyselect",
