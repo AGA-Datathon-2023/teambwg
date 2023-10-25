@@ -1,5 +1,4 @@
 
-
 data <- read.csv("../data/All_Prime_Awards_FY2024.csv", colClasses = "factor")
 
 base_chart <- data %>%
@@ -83,6 +82,7 @@ base_chart <- data %>%
       T ~ "None"
     )
   )
+  
 
 agency_base <- base_chart %>% 
   group_by(awarding_agency_name,agency_short,designation) %>% 
@@ -91,44 +91,218 @@ agency_base <- base_chart %>%
          perc_count = count_agency/sum(count_agency)) %>% 
   ungroup()
 
+state_base <- base_chart %>% 
+  group_by(recipient_state_name,designation) %>% 
+  summarise(sum_obl = sum(total_obligated_amount), count_agency = n()) %>% 
+  mutate(perc_oblig = sum_obl/sum(sum_obl),
+         perc_count = count_agency/sum(count_agency)) %>% 
+  ungroup() %>% 
+  mutate(recipient_state_name = str_to_title(recipient_state_name))
 
 
 
-graph_agency <- function(agency_df, agencies_long) {
+filter_df <- function(df, long_names, drill = "agency", oblig_switch = T) {
   
-  agencies_short <- agency_df %>% 
-    filter(awarding_agency_name %in% agencies_long) %>% 
-    distinct(agency_short) %>% 
-    pull(agency_short)
+  if (oblig_switch == T) {
+    
+    if (drill == "agency") {
+      filters <- df %>% 
+        filter(awarding_agency_name %in% long_names) %>% 
+        distinct(agency_short) %>% 
+        pull(agency_short)
+      
+      final_df <- df %>% 
+        select(agency_short,designation,perc_oblig) %>% 
+        filter(agency_short %in% filters) %>% 
+        pivot_wider(
+          names_from = "designation",
+          values_from = "perc_oblig"
+        )
+      
+      diff_cols <- setdiff(check_cols,colnames(final_df))
+      
+      if (length(diff_cols) > 0) {
+        final_df[, diff_cols] <- 0
+      }
+      
+      
+    } else if (drill == "state") {
+      filters <- df %>% 
+        filter(recipient_state_name %in% long_names) %>% 
+        distinct(recipient_state_name) %>% 
+        pull(recipient_state_name)
+      
+      final_df <- df %>% 
+        select(recipient_state_name,designation,perc_oblig) %>% 
+        filter(recipient_state_name %in% filters) %>% 
+        pivot_wider(
+          names_from = "designation",
+          values_from = "perc_oblig"
+        )
+      
+      diff_cols <- setdiff(check_cols,colnames(final_df))
+      
+      if (length(diff_cols) > 0) {
+        final_df[, diff_cols] <- 0
+      }
+      
+      
+    }
+  } else {
+    if (drill == "agency") {
+      filters <- df %>% 
+        filter(awarding_agency_name %in% long_names) %>% 
+        distinct(agency_short) %>% 
+        pull(agency_short)
+      
+      final_df <- df %>% 
+        select(agency_short,designation,perc_count) %>% 
+        filter(agency_short %in% filters) %>% 
+        pivot_wider(
+          names_from = "designation",
+          values_from = "perc_count"
+        )
+      
+      diff_cols <- setdiff(check_cols,colnames(final_df))
+      
+      if (length(diff_cols) > 0) {
+        final_df[, diff_cols] <- 0
+      }
+      
+      
+    } else if (drill == "state") {
+      filters <- df %>% 
+        filter(recipient_state_name %in% long_names) %>% 
+        distinct(recipient_state_name) %>% 
+        pull(recipient_state_name)
+      
+      final_df <- df %>% 
+        select(recipient_state_name,designation,perc_count) %>% 
+        filter(recipient_state_name %in% filters) %>% 
+        pivot_wider(
+          names_from = "designation",
+          values_from = "perc_count"
+        )
+      
+      diff_cols <- setdiff(check_cols,colnames(final_df))
+      
+      if (length(diff_cols) > 0) {
+        final_df[, diff_cols] <- 0
+      }
+      
+      
+    }
+    
+  }
   
-  agency_graph <- agency_df %>% 
-    select(agency_short,designation,perc_oblig) %>% 
-    filter(agency_short %in% agencies_short)
-  
-  e <- agency_graph %>%
-    pivot_wider(
-      names_from = "designation",
-      values_from = "perc_oblig"
-    ) %>% 
+  final_df <- final_df %>% 
     ungroup() %>% 
-    mutate_at(vars(2:ncol(.)), ~replace_na(.,0)) %>% 
-    e_charts(agency_short) %>% 
-    e_bar(`Asian Pacific American`, stack="grp") %>%
-    e_bar(`Black American`, stack="grp") %>%
-    e_bar(`Hispanic American`, stack="grp") %>%
-    e_bar(`Native American`, stack="grp") %>%
-    e_bar(`Subcontinent Asian Asian Indian American`, stack="grp") %>%
-    e_bar(Veteran, stack="grp") %>%
-    e_bar(Woman, stack="grp") %>% 
-    e_bar(`No Designation`, stack="grp") %>% 
-    e_flip_coords()
+    mutate_at(vars(2:ncol(.)), ~replace_na(.,0))
   
+  return (final_df)
+}
+
+graph_data <- function(df, drill = "agency") {
+  
+  if (drill == "agency") {
+    
+    e <- df %>% 
+      e_charts(agency_short) %>% 
+      e_bar(`Asian Pacific American`, stack="grp") %>%
+      e_bar(`Black American`, stack="grp") %>%
+      e_bar(`Hispanic American`, stack="grp") %>%
+      e_bar(`Native American`, stack="grp") %>%
+      e_bar(`Subcontinent Asian Asian Indian American`, stack="grp") %>%
+      e_bar(Veteran, stack="grp") %>%
+      e_bar(Woman, stack="grp") %>% 
+      e_bar(`No Designation`, stack="grp") %>% 
+      e_flip_coords() %>% 
+      e_x_axis(
+        max = 1,
+        formatter = e_axis_formatter("percent", digits = 0)
+      ) %>% 
+      e_tooltip(trigger = c("item"),
+                formatter = e_tooltip_item_formatter("percent", digits = 3))
+  } else if (drill == "state") {
+    
+    e <- df %>% 
+      e_charts(recipient_state_name) %>% 
+      e_bar(`Asian Pacific American`, stack="grp") %>%
+      e_bar(`Black American`, stack="grp") %>%
+      e_bar(`Hispanic American`, stack="grp") %>%
+      e_bar(`Native American`, stack="grp") %>%
+      e_bar(`Subcontinent Asian Asian Indian American`, stack="grp") %>%
+      e_bar(Veteran, stack="grp") %>%
+      e_bar(Woman, stack="grp") %>% 
+      e_bar(`No Designation`, stack="grp") %>% 
+      e_flip_coords() %>% 
+      e_x_axis(
+        max = 1,
+        formatter = e_axis_formatter("percent", digits = 0)
+      ) %>% 
+      e_tooltip(trigger = c("item"),
+                formatter = e_tooltip_item_formatter("percent", digits = 3))
+  }
   
   list(
     e = e
   )
   
 }
+
+
+
+
+
+
+
+
+
+
+# 
+# agencies_long <- "Commodity Futures Trading Commission"
+# agency_df <- agency_base
+# 
+# graph_agency <- function(agency_df, agencies_long) {
+#   
+#   agencies_short <- agency_df %>% 
+#     filter(awarding_agency_name %in% agencies_long) %>% 
+#     distinct(agency_short) %>% 
+#     pull(agency_short)
+#   
+#   agency_graph <- agency_df %>% 
+#     select(agency_short,designation,perc_oblig) %>% 
+#     filter(agency_short %in% agencies_short) %>% 
+#     pivot_wider(
+#       names_from = "designation",
+#       values_from = "perc_oblig"
+#     )
+#   
+#   diff_cols <- setdiff(check_cols,colnames(agency_graph))
+#   
+#   if (length(diff_cols) > 0) {
+#     agency_graph[, diff_cols] <- 0
+#   }
+#   
+#   e <- agency_graph %>%
+#     ungroup() %>% 
+#     mutate_at(vars(2:ncol(.)), ~replace_na(.,0)) %>% 
+#     e_charts(agency_short) %>% 
+#     e_bar(`Asian Pacific American`, stack="grp") %>%
+#     e_bar(`Black American`, stack="grp") %>%
+#     e_bar(`Hispanic American`, stack="grp") %>%
+#     e_bar(`Native American`, stack="grp") %>%
+#     e_bar(`Subcontinent Asian Asian Indian American`, stack="grp") %>%
+#     e_bar(Veteran, stack="grp") %>%
+#     e_bar(Woman, stack="grp") %>% 
+#     e_bar(`No Designation`, stack="grp") %>% 
+#     e_flip_coords()
+#   
+#   list(
+#     e = e
+#   )
+#   
+# }
 # desig <- base_chart %>% 
 #   group_by(designation) %>% 
 #   summarise(sum_obl = sum(total_obligated_amount), count_desig = n())

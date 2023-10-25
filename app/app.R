@@ -7,4 +7,4 @@ source("process_agency.R")
 source("ui.R")
 source("server.R")
 
-shinyApp(ui, server)
+shinyApp(ui, server, options = (list(launch.browser = T)))

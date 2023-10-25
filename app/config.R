@@ -124,3 +124,15 @@ agencies <- c(
   "United States Chemical Safety Board",
   "United States Trade and Development Agency"
 )
+
+check_cols <- c(
+  "agency_short",
+  "Asian Pacific American",
+  "Black American",
+  "Hispanic American",
+  "Native American",
+  "Subcontinent Asian Asian Indian American",
+  "Veteran",
+  "Woman",
+  "No Designation"
+)
