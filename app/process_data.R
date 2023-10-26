@@ -1,5 +1,6 @@
-
+## Read in the data
 data <- read.csv("../data/All_Prime_Awards_FY2024.csv", colClasses = "factor")
+
 
 base_chart <- data %>%
   filter(recipient_country_code == "USA") %>% 
@@ -261,7 +262,7 @@ graph_pie <- function(df, filter, category = "obligations", drill = "agency", ty
     
     final_df <- df %>% 
       filter(agency_short %in% filters) %>% 
-      filter(designation != "No Designation") %>% 
+      #filter(designation != "No Designation") %>% 
       rename("count" = count_agency)
     
     
@@ -269,7 +270,7 @@ graph_pie <- function(df, filter, category = "obligations", drill = "agency", ty
     
     final_df <- df %>% 
       filter(recipient_state_name %in% filter) %>% 
-      filter(designation != "No Designation") %>% 
+      #filter(designation != "No Designation") %>% 
       rename("count" = count_state)
     
   }
@@ -283,7 +284,8 @@ graph_pie <- function(df, filter, category = "obligations", drill = "agency", ty
         e_pie(`Sum of Obligations`, radius = c("50%", "80%")) %>% 
         e_tooltip(
           trigger = "item"
-        )
+        ) %>% 
+        e_legend_unselect("No Designation")
     } else {
       e <- final_df %>% 
         rename("Sum of Obligations" = sum_obl) %>% 
@@ -291,7 +293,8 @@ graph_pie <- function(df, filter, category = "obligations", drill = "agency", ty
         e_pie(`Sum of Obligations`, roseType = "radius") %>% 
         e_tooltip(
           trigger = "item"
-        )
+        ) %>% 
+        e_legend_unselect("No Designation")
       
     }
     
@@ -306,7 +309,8 @@ graph_pie <- function(df, filter, category = "obligations", drill = "agency", ty
         e_pie(`Number of Contracts`, radius = c("50%", "80%")) %>% 
         e_tooltip(
           trigger = "item"
-        )
+        ) %>% 
+        e_legend_unselect("No Designation")
       
     } else {
       e <- final_df %>% 
@@ -315,7 +319,8 @@ graph_pie <- function(df, filter, category = "obligations", drill = "agency", ty
         e_pie(`Number of Contracts`, roseType = "radius") %>% 
         e_tooltip(
           trigger = "item"
-        )
+        ) %>% 
+        e_legend_unselect("No Designation")
       
     }
     
