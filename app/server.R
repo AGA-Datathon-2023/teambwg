@@ -6,7 +6,8 @@ server <- function(input, output, session) {
     } else {
       agency_df <- filter_df(agency_base, input$agencyselect, "agency", oblig_switch = F)
     }
-    graph_data(agency_df, "agency")$e
+    graph_data(agency_df, "agency")$e %>% 
+      e_title(subtext = "Source: usaspending.gov FY 2024", sublink = "https://www.usaspending.gov/search/?hash=a071e13e9c5f880f1e9e8c76bc6900e8")
     
   })
   output$state_perc <- renderEcharts4r({
@@ -16,7 +17,8 @@ server <- function(input, output, session) {
     } else {
       state_df <- filter_df(state_base, input$stateselect, "state", oblig_switch = F)
     }
-    graph_data(state_df, "state")$e
+    graph_data(state_df, "state")$e %>% 
+      e_title(subtext = "Source: usaspending.gov FY 2024", sublink = "https://www.usaspending.gov/search/?hash=a071e13e9c5f880f1e9e8c76bc6900e8")
     
   })
   output$budget_agency <- renderEcharts4r({
@@ -43,7 +45,8 @@ server <- function(input, output, session) {
       pull(agency_short)
     
     e %>% 
-      e_title(title_short)
+      e_title(title_short,
+              subtext = "Source: usaspending.gov FY 2024", sublink = "https://www.usaspending.gov/search/?hash=a071e13e9c5f880f1e9e8c76bc6900e8")
     
   })
   
@@ -66,11 +69,7 @@ server <- function(input, output, session) {
     }
     e %>% 
       e_title(input$stateselect_compare,
-              options = list(
-                textStyle = list(
-                  ellipsis = "break"
-                )
-              ))
+              subtext = "Source: usaspending.gov FY 2024", sublink = "https://www.usaspending.gov/search/?hash=a071e13e9c5f880f1e9e8c76bc6900e8")
   })
   
   
