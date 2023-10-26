@@ -19,4 +19,59 @@ server <- function(input, output, session) {
     graph_data(state_df, "state")$e
     
   })
+  output$budget_agency <- renderEcharts4r({
+    
+    if (input$switch_compare == F & input$switch_type == T) {
+    
+      e <- graph_pie(agency_base, input$agencyselect_compare, category = "obligations", drill = "agency", "donut")
+      
+    } else if (input$switch_compare == F & input$switch_type == F) {
+    
+      e <- graph_pie(agency_base, input$agencyselect_compare, category = "obligations", drill = "agency", "radial")
+    } else if (input$switch_compare == T & input$switch_type == T) {
+    
+      e <- graph_pie(agency_base, input$agencyselect_compare, "count", "agency", "donut")
+      
+    } else if (input$switch_compare == T & input$switch_type == F) {
+    
+      e <- graph_pie(agency_base, input$agencyselect_compare, "count", "agency", "radial")
+    }
+    
+    title_short <- agency_base %>% 
+      filter(awarding_agency_name %in% input$agencyselect_compare) %>% 
+      head(1) %>% 
+      pull(agency_short)
+    
+    e %>% 
+      e_title(title_short)
+    
+  })
+  
+  output$budget_state <- renderEcharts4r({
+    
+    if (input$switch_compare == F & input$switch_type == T) {
+    
+      e <- graph_pie(state_base, input$stateselect_compare, category = "obligations", drill = "state", "donut")
+      
+    } else if (input$switch_compare == F & input$switch_type == F) {
+    
+      e <- graph_pie(state_base, input$stateselect_compare, category = "obligations", drill = "state", "radial")
+    } else if (input$switch_compare == T & input$switch_type == T) {
+    
+      e <- graph_pie(state_base, input$stateselect_compare, "count", "state", "donut")
+      
+    } else if (input$switch_compare == T & input$switch_type == F) {
+    
+      e <- graph_pie(state_base, input$stateselect_compare, "count", "state", "radial")
+    }
+    e %>% 
+      e_title(input$stateselect_compare,
+              options = list(
+                textStyle = list(
+                  ellipsis = "break"
+                )
+              ))
+  })
+  
+  
 }

@@ -93,9 +93,9 @@ agency_base <- base_chart %>%
 
 state_base <- base_chart %>% 
   group_by(recipient_state_name,designation) %>% 
-  summarise(sum_obl = sum(total_obligated_amount), count_agency = n()) %>% 
+  summarise(sum_obl = sum(total_obligated_amount), count_state = n()) %>% 
   mutate(perc_oblig = sum_obl/sum(sum_obl),
-         perc_count = count_agency/sum(count_agency)) %>% 
+         perc_count = count_state/sum(count_state)) %>% 
   ungroup() %>% 
   mutate(recipient_state_name = str_to_title(recipient_state_name))
 
@@ -249,6 +249,93 @@ graph_data <- function(df, drill = "agency") {
   )
   
 }
+
+
+graph_pie <- function(df, filter, category = "obligations", drill = "agency", type = "donut") {
+  
+  if (drill == "agency") {
+    filters <- df %>% 
+      filter(awarding_agency_name %in% filter) %>% 
+      distinct(agency_short) %>% 
+      pull(agency_short)
+    
+    final_df <- df %>% 
+      filter(agency_short %in% filters) %>% 
+      filter(designation != "No Designation") %>% 
+      rename("count" = count_agency)
+    
+    
+  } else if (drill == "state") {
+    
+    final_df <- df %>% 
+      filter(recipient_state_name %in% filter) %>% 
+      filter(designation != "No Designation") %>% 
+      rename("count" = count_state)
+    
+  }
+  if (category == "obligations") {
+    
+    if (type == "donut") {
+      
+      e <- final_df %>% 
+        rename("Sum of Obligations" = sum_obl) %>% 
+        e_charts(designation) %>% 
+        e_pie(`Sum of Obligations`, radius = c("50%", "80%")) %>% 
+        e_tooltip(
+          trigger = "item"
+        )
+    } else {
+      e <- final_df %>% 
+        rename("Sum of Obligations" = sum_obl) %>% 
+        e_charts(designation) %>% 
+        e_pie(`Sum of Obligations`, roseType = "radius") %>% 
+        e_tooltip(
+          trigger = "item"
+        )
+      
+    }
+    
+    
+  } else if (category == "count") {
+    
+    if (type == "donut") {
+      
+      e <- final_df %>% 
+        rename("Number of Contracts" = count) %>% 
+        e_charts(designation) %>% 
+        e_pie(`Number of Contracts`, radius = c("50%", "80%")) %>% 
+        e_tooltip(
+          trigger = "item"
+        )
+      
+    } else {
+      e <- final_df %>% 
+        rename("Number of Contracts" = count) %>% 
+        e_charts(designation) %>% 
+        e_pie(`Number of Contracts`, roseType = "radius") %>% 
+        e_tooltip(
+          trigger = "item"
+        )
+      
+    }
+    
+  }
+  
+  return(e)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

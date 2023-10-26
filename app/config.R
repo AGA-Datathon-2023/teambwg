@@ -125,6 +125,8 @@ agencies <- c(
   "United States Trade and Development Agency"
 )
 
+
+
 check_cols <- c(
   "agency_short",
   "Asian Pacific American",
@@ -136,3 +138,4 @@ check_cols <- c(
   "Woman",
   "No Designation"
 )
+
